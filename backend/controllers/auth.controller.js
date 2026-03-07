@@ -10,7 +10,6 @@ export const signupController = async (req, res) => {
         if (usernameExists)
             return res.status(400).json({ error: "Username already exists!" });
 
-        const pfpLink = `https://cdn.auth0.com/avatars/${username[0].toLowerCase() + username[1].toLowerCase()}.png`;
         const hashedPwd = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
 
         await User.create({
@@ -62,6 +61,7 @@ export const loginController = async (req, res) => {
             path: "/auth"
         });
 
+        // Also, send the online users
         return res.status(200).json({
             msg: "Logged in successfully!",
             accessToken: accessToken
@@ -114,6 +114,7 @@ export const refreshController = async (req, res) => {
             path: "/auth"
         });
 
+        // Also, send the online users
         return res.status(200).json({
             msg: "Refreshed access token!",
             accessToken: accessToken

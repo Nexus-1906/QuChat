@@ -23,6 +23,12 @@ A chat application that prioritizes privacy and end-to-end encryption using BB84
 4. **WebSocket Connection** - Server and client initialize a WebSocket connection
 5. **Cache Session** - Cache the WebSocket ID in Redis for quick retrieval
 
+### View Available Users and WebSockets
+
+- **Include auth.token in client initiation of websocket:** Client must send the authentication token in `socket.handshake.auth.token` when establishing the WebSocket connection.
+- **This app prevents user to open multiple sessions for the same user:** The application checks for existing user sessions in Redis to prevent duplicate connections for the same user.
+- **Error thrown when new session for same user is created should be handled by client (connect_error):** If a new session is attempted for an already connected user, an error is thrown; the client should listen for the `connect_error` event to handle this appropriately.
+
 ### Routes
 
 #### /auth

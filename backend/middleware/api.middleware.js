@@ -11,7 +11,7 @@ export const apiVerify = async (req, res, next) => {
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         next();
     }
-    catch (error) {
+    catch (err) {
         return res.status(401).json({ error: 'Invalid auth token' });
     }
 };

@@ -11,7 +11,8 @@ export const ioAuth = async (socket, next) => {
 
         if (userExists)
             throw new Error("User already exists!");
-        
+
+        socket.userId = userId;
         next();
     }
     catch (err) {

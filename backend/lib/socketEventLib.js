@@ -6,6 +6,6 @@ export const socketConnectEvent = async (socket) => {
 };
 
 export const socketDisconnectEvent = async (socket) => {
-    await redisClient.hDel("onlineUsers", socket.userId);
     socket.broadcast.emit("userLeft", socket.userId);
+    await redisClient.hDel("onlineUsers", socket.userId);
 };

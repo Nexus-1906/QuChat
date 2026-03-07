@@ -17,7 +17,6 @@ export const signupController = async (req, res) => {
             username: username,
             password: hashedPwd,
             profilePic: pfpLink,
-            currentlyActive: false
         });
 
         return res.status(201).json({
@@ -52,9 +51,8 @@ export const loginController = async (req, res) => {
         const refreshToken = jwt.sign({ userId: userDoc._id }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: "7d"
         });
-        userDoc.refreshToken = await bcrypt.hash(refreshToken, parseInt(process.env.SALT_ROUNDS));
-        userDoc.currentlyActive = true;
 
+        userDoc.refreshToken = await bcrypt.hash(refreshToken, parseInt(process.env.SALT_ROUNDS));
         await userDoc.save();
 
         res.cookie("refreshToken", refreshToken, {
@@ -105,9 +103,8 @@ export const refreshController = async (req, res) => {
         const refreshToken = jwt.sign({ userId: userDoc._id }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: "7d"
         });
-        userDoc.refreshToken = await bcrypt.hash(refreshToken, parseInt(process.env.SALT_ROUNDS));
-        userDoc.currentlyActive = true;
 
+        userDoc.refreshToken = await bcrypt.hash(refreshToken, parseInt(process.env.SALT_ROUNDS));
         await userDoc.save();
 
         res.cookie("refreshToken", refreshToken, {
@@ -142,8 +139,6 @@ export const logoutController = async (req, res) => {
 
         const userDoc = await User.findById(userId);
         userDoc.refreshToken = null;
-        userDoc.currentlyActive = false;
-
         await userDoc.save();
 
         return res.status(200).json({

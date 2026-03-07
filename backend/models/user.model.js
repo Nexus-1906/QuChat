@@ -5,8 +5,7 @@ const userSchema = new Schema({
     username: String,
     password: String,
     refreshToken: String,
-    profilePic: String,
-    currentlyActive: Boolean
+    profilePic: String
 }, {
     timestamps: true
 });

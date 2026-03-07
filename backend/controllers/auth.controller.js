@@ -15,7 +15,8 @@ export const signupController = async (req, res) => {
 
         await User.create({
             username: username,
-            password: hashedPwd
+            password: hashedPwd,
+            refreshToken: null
         });
 
         return res.status(201).json({

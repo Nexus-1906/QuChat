@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { redisClient } from "../index.js";
 
 export const signupController = async (req, res) => {
     try {
@@ -60,10 +61,11 @@ export const loginController = async (req, res) => {
             path: "/auth"
         });
 
-        // Also, send the online users
+        const onlineUsers = await redisClient.hGetAll("onlineUsers");
         return res.status(200).json({
             msg: "Logged in successfully!",
-            accessToken: accessToken
+            accessToken: accessToken,
+            onlineUsers: Object.keys(onlineUsers)
         });
     }
     catch (err) {
@@ -113,10 +115,11 @@ export const refreshController = async (req, res) => {
             path: "/auth"
         });
 
-        // Also, send the online users
+        const onlineUsers = await redisClient.hGetAll("onlineUsers");
         return res.status(200).json({
             msg: "Refreshed access token!",
-            accessToken: accessToken
+            accessToken: accessToken,
+            onlineUsers: Object.keys(onlineUsers)
         });
     }
     catch (err) {

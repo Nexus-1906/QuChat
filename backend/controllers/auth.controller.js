@@ -1,7 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { retrieveOnlineUsers } from "../lib/retrieveOnlineUsers.js";
+import retrieveOnlineUsers from "../lib/retrieveOnlineUsers.js";
 
 export const signupController = async (req, res) => {
     try {

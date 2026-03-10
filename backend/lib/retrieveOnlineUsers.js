@@ -1,7 +1,7 @@
 import { redisClient } from "../index.js";
 import { OnlineUsers } from "../models/user.model.js";
 
-export const retrieveOnlineUsers = async (username) => {
+const retrieveOnlineUsers = async (username) => {
     let onlineUsers;
     try {
         onlineUsers = await redisClient.hGetAll("onlineUsers");
@@ -14,3 +14,5 @@ export const retrieveOnlineUsers = async (username) => {
 
     return onlineUsers;
 }
+
+export default retrieveOnlineUsers;

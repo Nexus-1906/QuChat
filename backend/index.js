@@ -11,7 +11,7 @@ const app = express();
 const PORT = 8596;
 const io = new Server(8597, {
     cors: {
-        origin: ['http://localhost:8596',]
+        origin: ['http://localhost:8596', 'http://localhost:8595']
     }
 });
 let redisClient;

@@ -1,4 +1,4 @@
-import User from "../models/user.model.js";
+import { User, OnlineUsers } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { redisClient } from "../index.js";
@@ -62,11 +62,20 @@ export const loginController = async (req, res) => {
             path: "/auth"
         });
 
-        const onlineUsers = await redisClient.hGetAll("onlineUsers");
+        let onlineUsers;
+        try {
+            const onlineUsersObj = await redisClient.hGetAll("onlineUsers");
+            onlineUsers = Object.keys(onlineUsersObj);
+        }
+        catch (err) {
+            console.error("Unexpected error occurred", err.message);
+            onlineUsers = await OnlineUsers.find({ username: { $ne: username } }).project({ username: 1 });
+        }
+
         return res.status(200).json({
             msg: "Logged in successfully!",
             accessToken: accessToken,
-            onlineUsers: Object.keys(onlineUsers)
+            onlineUsers
         });
     }
     catch (err) {
@@ -116,11 +125,20 @@ export const refreshController = async (req, res) => {
             path: "/auth"
         });
 
-        const onlineUsers = await redisClient.hGetAll("onlineUsers");
+        let onlineUsers;
+        try {
+            const onlineUsersObj = await redisClient.hGetAll("onlineUsers");
+            onlineUsers = Object.keys(onlineUsersObj);
+        }
+        catch (err) {
+            console.error("Unexpected error occurred", err.message);
+            onlineUsers = await OnlineUsers.find({ username: { $ne: username } }).project({ username: 1 });
+        }
+
         return res.status(200).json({
             msg: "Refreshed access token!",
             accessToken: accessToken,
-            onlineUsers: Object.keys(onlineUsers)
+            onlineUsers
         });
     }
     catch (err) {
@@ -132,13 +150,13 @@ export const refreshController = async (req, res) => {
 export const logoutController = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
-        
+
         if (refreshToken === undefined)
             return res.status(400).json({ error: "Refresh token does not exist. User may already be logged out!" });
 
         const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, { ignoreExpiration: true });
-        const userId = payload.userId; 
-        
+        const userId = payload.userId;
+
         res.clearCookie('refreshToken');
 
         const userDoc = await User.findById(userId);

@@ -9,5 +9,11 @@ const userSchema = new Schema({
     timestamps: true
 });
 
+const onlineUsersSchema = new Schema({
+    username: String,
+    socketId: String
+});
+
 const User = model('User', userSchema);
-export default User;
+const OnlineUsers = model('OnlineUsers', onlineUsersSchema);
+export { User, OnlineUsers };

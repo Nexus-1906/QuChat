@@ -4,6 +4,9 @@ const { Schema, model } = mongoose;
 const requestSchema = new Schema({
     sender: String,
     receiver: String,
+    createdOn: Date,
+    eavesdropper: Boolean,
+    eavesdropperId: String,
     roomId: String
 });
 

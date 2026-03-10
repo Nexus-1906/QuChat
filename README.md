@@ -29,6 +29,20 @@ A chat application that prioritizes privacy and end-to-end encryption using BB84
 - **This app prevents user to open multiple sessions for the same user:** The application checks for existing user sessions in Redis to prevent duplicate connections for the same user.
 - **Error thrown when new session for same user is created should be handled by client (connect_error):** If a new session is attempted for an already connected user, an error is thrown; the client should listen for the `connect_error` event to handle this appropriately.
 
+### Chat Request Handling
+
+- **Real-time Communication:** Chat requests are sent, acknowledged, and rejected primarily via WebSockets to ensure real-time updates.
+- **Persistence & Lifecycle:** Requests are persisted in the database upon creation and are deleted after they are acknowledged, rejected, or when they time out.
+- **Request Payload:** A chat request must contain:
+  - `receiverId`: The intended recipient.
+  - `timeSent`: The timestamp when the request was initiated.
+  - `validWindow`: The duration for which the request remains valid before timing out.
+- **Message Queue Display:** Incoming requests are displayed in the UI's message queue, sorted by their arrival time. *(Implementation: The event emitted for an incoming request should add a callback to a queue/array, which is then executed based on the user's accept or reject action).*
+- **Acceptance Flow & Concurrency:** 
+  - Before accepting a request, the frontend must verify if the request is still valid (within its `validWindow`).
+  - If valid and accepted, the system must automatically reject all other pending requests for that user.
+  - Upon acceptance, the user's status must update so they are not available for other requests. *(Implementation: This can be managed by adding a new field like status/isBusy in the `onlineUsers` collection/hashset).*
+
 ### Routes
 
 #### /auth

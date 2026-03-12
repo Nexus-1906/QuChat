@@ -4,11 +4,10 @@ import { OnlineUsers } from "../models/user.model.js";
 export const socketConnectEvent = async (socket) => {
     socket.broadcast.emit("newUser", {
         username: socket.userId,
-        socketId: socket.id
     });
 
     try {
-        await redisClient.hSet("onlineUsers", socket.userId, socket.id);
+        await redisClient.hSet("onlineUsers", socket.userId, false);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);

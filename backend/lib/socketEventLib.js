@@ -2,9 +2,7 @@ import { redisClient } from "../index.js";
 import { OnlineUsers } from "../models/user.model.js";
 
 export const socketConnectEvent = async (socket) => {
-    socket.broadcast.emit("newUser", {
-        username: socket.userId,
-    });
+    socket.broadcast.emit("newUser", socket.userId);
 
     try {
         await redisClient.hSet("onlineUsers", socket.userId, false);
@@ -16,7 +14,7 @@ export const socketConnectEvent = async (socket) => {
     try {
         await OnlineUsers.create({
             username: socket.userId,
-            socketId: socket.id
+            isBusy: false
         });
     }
     catch (err) {

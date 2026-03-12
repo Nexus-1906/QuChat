@@ -28,5 +28,5 @@ export const redisConnect = async () => {
     catch (err) {
         console.error("Unexpected error occurred: Cache could not be connected.");
         console.error(err.message);
-    } 
+    }
 };

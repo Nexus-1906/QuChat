@@ -3,39 +3,27 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import { mongoConnect, redisConnect } from "./lib/dbConnect.js";
 import authRouter from "./routes/auth.route.js";
-import { Server } from "socket.io";
-import { ioAuth } from "./middleware/socket.middleware.js";
-import { socketConnectEvent, socketDisconnectEvent } from "./lib/socketEventLib.js";
+import apiRouter from "./routes/api.route.js";
 
 const app = express();
-const PORT = 8596;
-const io = new Server(8597, {
-    cors: {
-        origin: ['http://localhost:8596', 'http://localhost:8595']
-    }
-});
-let redisClient;
-
-app.use(cors({
-    origin: ['http://localhost:8597', 'http://localhost:8595']
-}));
+const SERVER_PORT = 8596;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(cors({
+    origin: ['http://localhost:8595', 'http://localhost:8597']
+}));
+
 app.use("/auth", authRouter);
+app.use("/api", apiRouter);
 
-app.listen(PORT, async () => {
-    console.log(`App started on PORT ${PORT}`);
-    mongoConnect();
-    redisClient = await redisConnect();
+const redisClient = await redisConnect();
+mongoConnect();
+
+app.listen(SERVER_PORT, () => {
+    console.log(`App started on PORT ${SERVER_PORT}`);
 });
 
-io.use(ioAuth);
-io.on("connection", async socket => {
-    await socketConnectEvent(socket);
-    socket.on("disconnect", () => socketDisconnectEvent(socket));
-});
-
-export { redisClient, io };
+export { redisClient };

@@ -1,7 +1,7 @@
 import express from "express";
 import {
-    persistRequestController, deleteRequestController,
-    getAwaitingRequestsController, eavesdropController
+    persistRequestController, finishRequestController,
+    eavesdroppableRequestsController, eavesdropController
 } from "../controllers/request.api.controller.js";
 import { getOnlineUsersController, verifyAccessTokenController } from "../controllers/actions.api.controller.js";
 
@@ -11,8 +11,8 @@ apiRouter.get("/verify", verifyAccessTokenController);
 apiRouter.get("/getOnlineUsers", getOnlineUsersController);
 
 apiRouter.post("/persistRequest", persistRequestController);
-apiRouter.get("/awaitingRequests", getAwaitingRequestsController);
+apiRouter.get("/getEavesdroppableRequests", eavesdroppableRequestsController);
 apiRouter.patch("/eavesdrop/:roomId", eavesdropController);
-apiRouter.delete("/deleteRequest", deleteRequestController);
+apiRouter.delete("/finishRequest", finishRequestController);
 
 export default apiRouter;

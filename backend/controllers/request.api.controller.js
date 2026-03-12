@@ -1,63 +1,167 @@
 import RequestModel from "../models/requests.model.js";
-import { io } from "../index.js";
+import { redisClient } from "../index.js";
+import io from "../io.index.js";
 
 export const persistRequestController = async (req, res) => {
-    const { receiverId, createdOn, roomId } = req.body;
+    const { receiverId, createdOn, timeLimitInSec } = req.body;
+    const senderId = req.userId;
+
+    const newRequestForED = {
+        sender: senderId,
+        receiver: receiverId,
+        createdOn,
+        timeLimitInSec
+    };
+
+    const newRequest = {
+        ...newRequestForED,
+        eavesdropper: false,
+        eavesdropperId: null,
+        status: "pending"
+    };
+
+    // Verify if receiver is available for requests
     try {
-        const newRequest = {
-            sender: req.userId,
-            receiver: receiverId,
-            createdOn: createdOn,
-            eavesdropper: false,
-            eavesdropperId: null,
-            roomId: roomId
-        };
+        if (await redisClient.hGet('onlineUsers', receiverId) === true)
+            return res.status(404).json({ msg: "User is not available for requests" });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
+
+        try {
+            if (await OnlineUsers.findOne({ username: receiverId, isBusy: true }))
+                return res.status(404).json({ msg: "User is not available for requests" });
+        }
+        catch (err) {
+            console.error("Unexpected error occurred", err.message);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    }
+
+    // Verify if request already exists
+    try {
+        if (await redisClient.zScore('requestIndex', senderId) !== null)
+            return res.status(409).json({ msg: "Request already exists" });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
+
+        try {
+            if (await RequestModel.findOne({ sender: senderId, status: "pending" }))
+                return res.status(409).json({ msg: "Request already exists" });
+        }
+        catch (err) {
+            console.error("Unexpected error occurred", err.message);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    }
+
+    // Persist request
+    try {
+        await redisClient.zAdd('requestIndex', { score: createdOn.getTime(), value: senderId });
+        await redisClient.hSet(`request:${senderId}`, newRequest);
 
         await RequestModel.create(newRequest);
-        io.emit("newRequest", newRequest);
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
+        return res.status(500).json({ msg: "Internal server error" });
+    }
 
-        return res.status(200).json({
-            msg: "Request persisted successfully!"
+    // Emit request for eavesdropper
+    io.emit("requestForED", newRequestForED);
+
+    return res.status(200).json({
+        msg: "Request persisted successfully!"
+    });
+};
+
+export const eavesdroppableRequestsController = async (_, res) => {
+    let requests = null;
+
+    try {
+        const requestIndex = await redisClient.zRange('requestIndex', 0, -1);
+
+        requests = requestIndex.map(async requester => {
+            const request = await redisClient.hGetAll(`request:${requester}`);
+            return {
+                sender: request.sender,
+                receiver: request.receiver,
+                createdOn: request.createdOn,
+                timeLimitInSec: request.timeLimitInSec
+            };
+        });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
+
+        try {
+            requests = await RequestModel
+                .find({ eavesdropper: false, status: "pending" })
+                .project({ eavesdropper: 0, eavesdropperId: 0, status: 0, _id: 0 })
+                .sort({ createdOn: 1 });
+        }
+        catch (err) {
+            console.error("Unexpected error occurred", err.message);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    }
+    return res.status(200).json(requests);
+};
+
+export const eavesdropController = async (req, res) => {
+    const senderId = req.params.roomId;
+    const eavesdropperId = req.userId;
+
+    try {
+        const findFilter = { sender: senderId, eavesdropper: false, status: "pending" };
+        const updateFilter = { eavesdropper: true, eavesdropperId: eavesdropperId };
+
+        const request = await RequestModel.findOneAndUpdate(findFilter, updateFilter);
+        if (request === null)
+            return res.status(404).json({ msg: "Cannot eavesdrop on this chat" });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
+        return res.status(500).json({ msg: "Internal server error" });
+    }
+
+    try {
+        const requestInRedis = await redisClient.hGet(`request:${senderId}`);
+
+        if (requestInRedis === null || requestInRedis.eavesdropper || requestInRedis.status !== "pending")
+            return res.status(404).json({ msg: "Cannot eavesdrop on this chat" });
+
+        await redisClient.hSet(`request:${senderId}`, {
+            eavesdropper: true,
+            eavesdropperId: eavesdropperId
         });
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);
         return res.status(500).json({ msg: "Internal server error" });
     }
+
+    io.emit("removeRequest", senderId);
+    return res.status(200).json({ msg: "Eavesdropped successfully" });
 };
 
-export const getAwaitingRequestsController = async (_, res) => {
-    const requests = await RequestModel.find({ eavesdropper: false }).sort({ createdOn: 1 });
-    return res.status(200).json(requests);
-};
+export const finishRequestController = async (req, res) => {
+    const userId = req.userId;
+    const finishStatus = req.body.finishStatus;
 
-export const eavesdropController = async (req, res) => {
-    const roomId = req.params.roomId;
-    const eavesdropperId = req.userId;
     try {
-        const findFilter = { roomId: roomId, eavesdropper: false };
-        const updateFilter = { eavesdropper: true, eavesdropperId: eavesdropperId };
+        await redisClient.sRem('requestIndex', userId);
+        await redisClient.hDel(`request:${userId}`);
+
+        const findFilter = { sender: userId, status: "pending" };
+        const updateFilter = { status: finishStatus };
 
         const request = await RequestModel.findOneAndUpdate(findFilter, updateFilter);
         if (request === null)
-            return res.status(404).json({ msg: "Cannot eavesdrop on this chat" });
+            return res.status(404).json({ msg: "Request from this user does not exist" });
 
-        io.emit("removeRequest", request._id);
-        return res.status(200).json({ msg: "Eavesdropped successfully" });
-    }
-    catch (err) {
-        console.error("Unexpected error occurred", err.message);
-        return res.status(500).json({ msg: "Internal server error" });
-    }
-};
-
-export const deleteRequestController = async (req, res) => {
-    const roomId = req.body.roomId;
-    const userId = req.userId;
-
-    try {
-        const deletedRequest = await RequestModel.findOneAndDelete({ sender: userId, roomId: roomId });
-        io.emit("removeRequest", deletedRequest._id);
+        io.emit("removeRequest", userId);
         return res.status(204);
     }
     catch (err) {

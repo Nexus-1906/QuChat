@@ -23,8 +23,6 @@ export const socketConnectEvent = async (socket) => {
 };
 
 export const socketDisconnectEvent = async (socket) => {
-    socket.broadcast.emit("userLeft", socket.userId);
-
     try {
         await redisClient.hDel("onlineUsers", socket.userId);
     }
@@ -34,6 +32,7 @@ export const socketDisconnectEvent = async (socket) => {
 
     try {
         await OnlineUsers.deleteOne({ username: socket.userId });
+        socket.broadcast.emit("userLeft", socket.userId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);

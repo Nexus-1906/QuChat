@@ -13,11 +13,15 @@ export const socketConnectEvent = async (socket) => {
     catch (err) {
         console.error("Unexpected error occurred", err.message);
     }
-    finally {
+
+    try {
         await OnlineUsers.create({
             username: socket.userId,
             socketId: socket.id
         });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
     }
 };
 
@@ -30,7 +34,11 @@ export const socketDisconnectEvent = async (socket) => {
     catch (err) {
         console.error("Unexpected error occurred", err.message);
     }
-    finally {
+
+    try {
         await OnlineUsers.deleteOne({ username: socket.userId });
+    }
+    catch (err) {
+        console.error("Unexpected error occurred", err.message);
     }
 };

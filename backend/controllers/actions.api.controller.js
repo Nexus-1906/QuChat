@@ -7,8 +7,8 @@ export const verifyAccessTokenController = (_, res) => {
     return res.status(200).json({ msg: "Access token verified successfully!" });
 };
 
-export const getOnlineUsersController = async (_, res) => {
-    const onlineUsers = await retrieveOnlineUsers();
+export const getOnlineUsersController = async (req, res) => {
+    const onlineUsers = await retrieveOnlineUsers(req.userId);
     if (onlineUsers === null)
         return res.status(500).json({ error: "Internal Server Error" });
     return res.status(200).json({ onlineUsers });

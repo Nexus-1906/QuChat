@@ -18,8 +18,8 @@ export const setToBusyController = async (req, res) => {
     const userId = req.userId;
 
     try {
-        await redisClient.hDel("onlineUsers", userId);
         await OnlineUsers.updateOne({ username: userId }, { isBusy: true });
+        await redisClient.hDel("onlineUsers", userId);
 
         io.emit('userLeft', userId);
     }

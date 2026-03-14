@@ -32,8 +32,10 @@ A chat application that prioritizes privacy and end-to-end encryption using BB84
 ### Redis Data Structures
 
 - **`onlineUsers`** - Hash Set - key: `userId`; value: `socketId`
-- **`requestIndex`** - Sorted Set - value: `senderId`; score: created time
-- **`request:{senderId}`** - Hash Set - value: `sender`, `receiver`, `roomId`, `createdOn`, `timeLimitInSec`
+- **`allRequestIndex`** - Sorted Set - value: `senderId`; score: created time (for all requests)
+- **`EDRequestIndex`** - Sorted Set - value: `senderId`; score: created time (for eavesdroppable requests)
+- **`requester:{senderId}`** - Hash Set - value: `sender`, `receiver`, `roomId`, `createdOn`, `timeLimitInSec`
+- **`requestee:{receiverId}`** - Sorted Set - value: `senderId`; score: created time (for requests sent to the user)
 
 ### Chat Request Handling
 
@@ -70,6 +72,7 @@ A chat application that prioritizes privacy and end-to-end encryption using BB84
   - `PATCH /api/setToBusy` — set user status to busy
   - `PATCH /api/setToAvailable` — set user status to available
   - `POST /api/persistRequest` — persist chat request to another user in database
+  - `GET /api/getRequestsToMe` — get list of requests sent to the user
   - `GET /api/getEavesdroppableRequests` — get requests that can be eavesdropped on
   - `PATCH /api/eavesdrop/:roomId` — eavesdrop private chat (1 eavesdropper allowed)
   - `DELETE /api/finishRequest` — finish request and remove from database

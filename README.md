@@ -29,6 +29,12 @@ A chat application that prioritizes privacy and end-to-end encryption using BB84
 - **This app prevents user to open multiple sessions for the same user:** The application checks for existing user sessions in Redis to prevent duplicate connections for the same user.
 - **Error thrown when new session for same user is created should be handled by client (connect_error):** If a new session is attempted for an already connected user, an error is thrown; the client should listen for the `connect_error` event to handle this appropriately.
 
+### Redis Data Structures
+
+- **`onlineUsers`** - Hash Set - key: `userId`; value: `socketId`
+- **`requestIndex`** - Sorted Set - value: `senderId`; score: created time
+- **`request:{senderId}`** - Hash Set - value: `sender`, `receiver`, `roomId`, `createdOn`, `timeLimitInSec`
+
 ### Chat Request Handling
 
 - **Real-time Communication:** Chat requests are sent, acknowledged, and rejected primarily via WebSockets to ensure real-time updates.

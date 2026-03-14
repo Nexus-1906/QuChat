@@ -11,6 +11,7 @@ const userSchema = new Schema({
 
 const onlineUsersSchema = new Schema({
     username: String,
+    socketId: String,
     isBusy: Boolean
 });
 

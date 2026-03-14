@@ -4,13 +4,10 @@ import { OnlineUsers } from "../models/user.model.js";
 const retrieveOnlineUsers = async (currUserId) => {
     let onlineUsers;
     try {
-        const onlineUsersList = await redisClient.sMembers("onlineUsers");
-        onlineUsers = onlineUsersList
-            .filter(username => username !== currUserId)
-            .map(async username => {
-                const socketId = await redisClient.hGet(`onlineUsers:${username}`, "socketId");
-                return { username, socketId };
-            });
+        const onlineUsersObj = await redisClient.hGetAll("onlineUsers");
+        delete onlineUsersObj[currUserId];
+        onlineUsers = Object.entries(onlineUsersObj)
+            .map(([username, socketId]) => ({ username, socketId }));
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);

@@ -5,11 +5,7 @@ export const socketConnectEvent = async (socket) => {
     socket.broadcast.emit("newUser", socket.userId, socket.id);
 
     try {
-        await redisClient.sAdd("onlineUsers", socket.userId);
-        await redisClient.hAdd(`onlineUsers:${socket.userId}`, {
-            isBusy: false,
-            socketId: socket.id
-        });
+        await redisClient.hAdd("onlineUsers", socket.userId, socket.id);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);
@@ -29,8 +25,7 @@ export const socketConnectEvent = async (socket) => {
 
 export const socketDisconnectEvent = async (socket) => {
     try {
-        await redisClient.sRem("onlineUsers", socket.userId);
-        await redisClient.del(`onlineUsers:${socket.userId}`);
+        await redisClient.hDel("onlineUsers", socket.userId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);

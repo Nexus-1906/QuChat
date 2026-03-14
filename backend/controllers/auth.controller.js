@@ -5,6 +5,9 @@ import retrieveOnlineUsers from "../lib/retrieveOnlineUsers.js";
 
 export const signupController = async (req, res) => {
     try {
+        if (req.cookies.refreshToken !== undefined)
+            return res.status(400).json({ error: "User is already logged in" });
+
         const { username, password } = req.body;
         const usernameExists = !!(await User.exists({ username: username }));
 

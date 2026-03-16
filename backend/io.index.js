@@ -12,11 +12,23 @@ const io = new Server(IO_PORT, {
 io.use(ioAuth);
 io.on("connection", async socket => {
     await socketConnectEvent(socket);
-    socket.on("joinRoom", async (receiverId, request) => await sendJoinRequest(socket, receiverId, request));
+
+    socket.on("sendJoinRequest", async (receiverId, request) =>
+        await sendJoinRequestEvent(socket, receiverId, request));
+
+    socket.on("eavesdropRequest", async roomId =>
+        await eavesdropRequestEvent(socket, roomId));
+
     socket.on("accept", async roomId => await acceptEvent(socket, roomId));
     socket.on("reject", async roomId => await rejectEvent(socket, roomId));
-    socket.on("sendMessage", (roomId, encryptedMessage) => sendMessageEvent(socket, roomId, encryptedMessage));
-    socket.on("disconnect", () => socketDisconnectEvent(socket));
+    socket.on("joinAck", async (roomId, ack) =>
+        await joinAckEvent(socket, roomId, ack));
+
+    socket.on("sendMessage", (roomId, encryptedMessage) =>
+        sendMessageEvent(socket, roomId, encryptedMessage));
+
+    socket.on("leave", async roomId => await leaveEvent(socket, roomId));
+    socket.on("disconnect", async () => await socketDisconnectEvent(socket));
 });
 
 export default io;

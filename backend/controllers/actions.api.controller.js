@@ -19,7 +19,7 @@ export const setToBusyController = async (req, res) => {
 
     try {
         await OnlineUsers.updateOne({ username: userId }, { isBusy: true });
-        await redisClient.hDel("onlineUsers", userId);
+        await redisClient.sRem("onlineUsers", userId);
 
         io.emit('userLeft', userId);
     }
@@ -35,10 +35,10 @@ export const setToAvailableController = async (req, res) => {
     const userId = req.userId;
 
     try {
-        const userDoc = await OnlineUsers.findOneAndUpdate({ username: userId }, { isBusy: false });
-        await redisClient.hSet("onlineUsers", userId, userDoc.socketId);
+        await OnlineUsers.updateOne({ username: userId }, { isBusy: false });
+        await redisClient.sAdd("onlineUsers", userId);
 
-        io.emit('newUser', userId, userDoc.socketId);
+        io.emit('newUser', userId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);

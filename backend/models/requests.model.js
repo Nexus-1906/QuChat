@@ -4,7 +4,6 @@ const { Schema, model } = mongoose;
 const requestSchema = new Schema({
     sender: String,
     receiver: String,
-    roomId: String,
     createdOn: Date,
     TimeLimitInSec: Number,
     eavesdropper: Boolean,

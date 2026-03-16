@@ -6,11 +6,10 @@ import { OnlineUsers } from "../models/user.model.js";
 export const persistRequestController = async (req, res) => {
     const { receiverId, createdOn, timeLimitInSec } = req.body;
     const senderId = req.userId;
-    let roomId = null;
 
     // Verify if receiver is available for requests
     try {
-        if (!(await redisClient.hExists('onlineUsers', receiverId)))
+        if (!(await redisClient.sIsMember('onlineUsers', receiverId)))
             return res.status(404).json({ msg: "User is not available for requests" });
     }
     catch (err) {
@@ -30,8 +29,6 @@ export const persistRequestController = async (req, res) => {
     try {
         if (await redisClient.zScore('requestIndex', senderId) !== null)
             return res.status(409).json({ msg: "Request already exists" });
-
-        roomId = await redisClient.hGet("onlineUsers", senderId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);
@@ -39,8 +36,6 @@ export const persistRequestController = async (req, res) => {
         try {
             if (await RequestModel.exists({ sender: senderId, status: "pending" }))
                 return res.status(409).json({ msg: "Request already exists" });
-
-            roomId = (await OnlineUsers.findOne({ username: senderId }).select({ socketId: 1, _id: 0 })).socketId;
         }
         catch (err) {
             console.error("Unexpected error occurred", err.message);
@@ -51,7 +46,6 @@ export const persistRequestController = async (req, res) => {
     const newRequestForED = {
         sender: senderId,
         receiver: receiverId,
-        roomId,
         createdOn,
         timeLimitInSec
     };
@@ -99,7 +93,6 @@ export const getRequestsToMeController = async (req, res) => {
             return {
                 sender: request.sender,
                 receiver: request.receiver,
-                roomId: request.roomId,
                 createdOn: request.createdOn,
                 timeLimitInSec: request.timeLimitInSec
             };
@@ -135,7 +128,6 @@ export const eavesdroppableRequestsController = async (_, res) => {
             return {
                 sender: request.sender,
                 receiver: request.receiver,
-                roomId: request.roomId,
                 createdOn: request.createdOn,
                 timeLimitInSec: request.timeLimitInSec
             };

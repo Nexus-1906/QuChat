@@ -4,10 +4,8 @@ import { OnlineUsers } from "../models/user.model.js";
 const retrieveOnlineUsers = async (currUserId) => {
     let onlineUsers;
     try {
-        const onlineUsersObj = await redisClient.hGetAll("onlineUsers");
-        delete onlineUsersObj[currUserId];
-        onlineUsers = Object.entries(onlineUsersObj)
-            .map(([username, socketId]) => ({ username, socketId }));
+        const onlineUsersObj = await redisClient.sMembers("onlineUsers");
+        onlineUsers = onlineUsersObj.filter(username => username !== currUserId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);
@@ -15,8 +13,9 @@ const retrieveOnlineUsers = async (currUserId) => {
         try {
             onlineUsers = await OnlineUsers
                 .find({ username: { $ne: currUserId }, isBusy: false })
-                .select({ isBusy: 0, _id: 0 })
-                .toArray();
+                .select({ username: 1, _id: 0 })
+                .toArray()
+                .map(user => user.username);
         }
         catch (err) {
             console.error("Unexpected error occurred", err.message);

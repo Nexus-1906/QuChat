@@ -181,7 +181,7 @@ export const eavesdropController = async (req, res) => {
         return res.status(500).json({ msg: "Internal server error" });
     }
 
-    io.emit("removeRequest", senderId);
+    io.emit("removeRequestForED", senderId);
     return res.status(200).json({ msg: "Eavesdropped successfully" });
 };
 

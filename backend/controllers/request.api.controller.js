@@ -2,28 +2,15 @@ import RequestModel from "../models/requests.model.js";
 import { redisClient } from "../index.js";
 import io from "../io.index.js";
 import { OnlineUsers } from "../models/user.model.js";
+import checkIfOnline from "../lib/checkIfOnline.js";
 
 export const persistRequestController = async (req, res) => {
     const { receiverId, createdOn, timeLimitInSec } = req.body;
     const senderId = req.userId;
 
     // Verify if receiver is available for requests
-    try {
-        if (!(await redisClient.sIsMember('onlineUsers', receiverId)))
-            return res.status(404).json({ msg: "User is not available for requests" });
-    }
-    catch (err) {
-        console.error("Unexpected error occurred", err.message);
-
-        try {
-            if (await OnlineUsers.exists({ username: receiverId, isBusy: true }))
-                return res.status(404).json({ msg: "User is not available for requests" });
-        }
-        catch (err) {
-            console.error("Unexpected error occurred", err.message);
-            return res.status(500).json({ msg: "Internal server error" });
-        }
-    }
+    if (!(await checkIfOnline(receiverId)))
+        return res.status(404).json({ msg: "User is not available for requests" });
 
     // Verify if request already exists
     try {

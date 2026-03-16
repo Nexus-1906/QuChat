@@ -83,7 +83,8 @@ export const persistRequestController = async (req, res) => {
     io.emit("requestForED", newRequestForED);
 
     return res.status(200).json({
-        msg: "Request persisted successfully!"
+        msg: "Request persisted successfully!",
+        newRequestForED
     });
 };
 

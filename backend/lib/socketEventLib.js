@@ -27,7 +27,7 @@ export const socketConnectEvent = async (socket) => {
 export const sendJoinRequestEvent = async (socket, request) => {
     const isReceiverOnline = await checkIfOnline(request.receiver);
     if (!isReceiverOnline)
-        return socket.emit("requestFailed", "User is not available for requests"); // If userId = roomId, finishRequest(cancelled), else leaveEvent is called
+        return socket.emit("requestFailed", "User is not available for requests"); // If userId = roomId, finishRequest(cancelled), else if eavesdropper, call eavesdropFailed, else leaveEvent is called
 
     socket.to(request.receiver).emit("requestToJoin", request);
     socket.requestWaitSession = socket.userId;

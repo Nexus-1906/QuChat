@@ -4,9 +4,21 @@ import "dotenv/config";
 import { mongoConnect, redisConnect } from "./lib/dbConnect.js";
 import authRouter from "./routes/auth.route.js";
 import apiRouter from "./routes/api.route.js";
+import socketInit from "./io.index.js";
+
+const SERVER_PORT = 8596;
+const IO_PORT = 8597;
 
 const app = express();
-const SERVER_PORT = 8596;
+
+const io = new Server(IO_PORT, {
+    cors: {
+        origin: ['http://localhost:8595', 'http://localhost:8596']
+    }
+});
+
+const redisClient = await redisConnect();
+mongoConnect();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,11 +31,10 @@ app.use(cors({
 app.use("/auth", authRouter);
 app.use("/api", apiRouter);
 
-const redisClient = await redisConnect();
-mongoConnect();
+socketInit(io);
 
 app.listen(SERVER_PORT, () => {
     console.log(`App started on PORT ${SERVER_PORT}`);
 });
 
-export { redisClient };
+export { io, redisClient };

@@ -1,4 +1,3 @@
-import { io } from "./index.js";
 import { ioAuth } from "./middleware/socket.middleware.js";
 import {
     socketConnectEvent, socketDisconnectEvent,
@@ -7,7 +6,7 @@ import {
     sendMessageEvent, leaveEvent
 } from "./lib/socketEventLib.js";
 
-export default socketInit = () => {
+export default socketInit = (io) => {
     io.use(ioAuth);
 
     io.on("connection", async socket => {

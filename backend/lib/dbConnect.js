@@ -21,7 +21,10 @@ export const redisConnect = async () => {
                 port: 10401
             }
         });
-
+        client.on('error', (err) => {
+            console.error("Unexpected error occurred: Cache could not be connected.");
+            console.error(err.message);
+        });
         await client.connect();
         return client;
     }

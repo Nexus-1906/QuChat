@@ -8,8 +8,8 @@ export const signupController = async (req, res) => {
             return res.status(400).json({ error: "User is already logged in" });
 
         const { username, password } = req.body;
-        const usernameExists = !!(await User.exists({ username: username }));
 
+        const usernameExists = await User.exists({ username: username });
         if (usernameExists)
             return res.status(400).json({ error: "Username already exists!" });
 
@@ -60,7 +60,7 @@ export const loginController = async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.PROD === "true",
-            sameSite: "strict",
+            sameSite: "none",
             path: "/auth"
         });
 
@@ -112,7 +112,7 @@ export const refreshController = async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.PROD === "true",
-            sameSite: "strict",
+            sameSite: "none",
             path: "/auth"
         });
 

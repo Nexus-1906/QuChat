@@ -74,14 +74,14 @@ export const getMyActiveRequestsController = async (req, res) => {
     let requests = null;
 
     try {
-        const requestIndex = await redisClient.zRange(`requestee:${userId}`, 0, -1);
+        const requestIndex = await redisClient.zRange(`requestee:${userId}`, 0, -1, { REV: true });
         requests = requestIndex.map(async requester => {
             const request = await redisClient.hGetAll(`requester:${requester}`);
             return {
                 sender: request.sender,
                 receiver: request.receiver,
                 createdOn: request.createdOn,
-                timeLimitInSec: request.timeLimitInSec
+                timeLimitInMs: request.timeLimitInMs
             };
         });
     }
@@ -92,7 +92,7 @@ export const getMyActiveRequestsController = async (req, res) => {
             requests = await RequestModel
                 .find({ receiver: userId, status: "pending" })
                 .select({ eavesdropper: 0, eavesdropperId: 0, status: 0, _id: 0 })
-                .sort({ createdOn: 1 })
+                .sort({ createdOn: -1 })
                 .toArray();
         }
         catch (err) {
@@ -110,22 +110,24 @@ export const eavesdroppableRequestsController = async (_, res) => {
     try {
         const requestIndex = await redisClient.zRange('EDRequestIndex', 0, -1);
 
-        requests = requestIndex.map(async requester => {
-            const request = await redisClient.hGetAll(`requester:${requester}`);
-            return {
-                sender: request.sender,
-                receiver: request.receiver,
-                createdOn: request.createdOn,
-                timeLimitInSec: request.timeLimitInSec
-            };
-        });
+        requests = requestIndex
+            .map(async requester => {
+                const request = await redisClient.hGetAll(`requester:${requester}`);
+                return {
+                    sender: request.sender,
+                    receiver: request.receiver,
+                    createdOn: request.createdOn,
+                    timeLimitInMs: request.timeLimitInMs
+                };
+            })
+            .filter(request => request.receiver !== req.userId);
     }
     catch (err) {
         console.error("Unexpected error occurred", err.message);
 
         try {
             requests = await RequestModel
-                .find({ eavesdropper: false, status: "pending" })
+                .find({ receiver: { $ne: req.userId }, eavesdropper: false, status: "pending" })
                 .select({ eavesdropper: 0, eavesdropperId: 0, status: 0, _id: 0 })
                 .sort({ createdOn: 1 })
                 .toArray();

@@ -5,7 +5,7 @@ import checkIfOnline from "../lib/checkIfOnline.js";
 import finishRequest from "../lib/finishRequest.js";
 
 export const persistRequestController = async (req, res) => {
-    const { receiverId, createdOn, timeLimitInSec } = req.body;
+    const { receiverId, createdOn, timeLimitInMs } = req.body;
     const senderId = req.userId;
 
     // Verify if receiver is available for requests
@@ -34,7 +34,7 @@ export const persistRequestController = async (req, res) => {
         sender: senderId,
         receiver: receiverId,
         createdOn,
-        timeLimitInSec
+        timeLimitInMs
     };
 
     const newRequest = {
@@ -49,10 +49,10 @@ export const persistRequestController = async (req, res) => {
         await RequestModel.create(newRequest);
 
         await redisClient.multi()
-            .zAdd('allRequestIndex', { score: createdOn.getTime(), value: senderId })
-            .zAdd('EDRequestIndex', { score: createdOn.getTime(), value: senderId })
+            .zAdd('allRequestIndex', { score: createdOn, value: senderId })
+            .zAdd('EDRequestIndex', { score: createdOn, value: senderId })
             .hSet(`requester:${senderId}`, newRequest)
-            .zAdd(`requestee:${receiverId}`, { score: createdOn.getTime(), value: senderId })
+            .zAdd(`requestee:${receiverId}`, { score: createdOn, value: senderId })
             .exec();
     }
     catch (err) {
@@ -69,7 +69,7 @@ export const persistRequestController = async (req, res) => {
     });
 };
 
-export const getRequestsToMeController = async (req, res) => {
+export const getMyActiveRequestsController = async (req, res) => {
     const userId = req.userId;
     let requests = null;
 

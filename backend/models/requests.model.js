@@ -4,8 +4,8 @@ const { Schema, model } = mongoose;
 const requestSchema = new Schema({
     sender: String,
     receiver: String,
-    createdOn: Date,
-    TimeLimitInSec: Number,
+    createdOn: Number,
+    timeLimitInMs: Number,
     eavesdropper: Boolean,
     eavesdropperId: String,
     status: String

@@ -1,6 +1,6 @@
 import express from "express";
 import {
-    persistRequestController, getRequestsToMeController, finishRequestController,
+    persistRequestController, getMyActiveRequestsController, finishRequestController,
     eavesdroppableRequestsController, eavesdropController
 } from "../controllers/request.api.controller.js";
 import {
@@ -16,7 +16,7 @@ apiRouter.patch("/setToBusy", setToBusyController);
 apiRouter.patch("/setToAvailable", setToAvailableController);
 
 apiRouter.post("/persistRequest", persistRequestController);
-apiRouter.get("/getRequestsToMe", getRequestsToMeController);
+apiRouter.get("/getMyActiveRequests", getMyActiveRequestsController);
 apiRouter.get("/getEavesdroppableRequests", eavesdroppableRequestsController);
 apiRouter.patch("/eavesdrop/:roomId", eavesdropController);
 apiRouter.delete("/finishRequest", finishRequestController);

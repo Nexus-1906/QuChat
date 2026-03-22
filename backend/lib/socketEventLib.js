@@ -18,7 +18,8 @@ export const socketConnectEvent = async (socket) => {
         });
 
         socket.chatSession = false;
-        socket.requestWaitSession = false;
+        socket.responseWaitSession = false;
+        socket.ackWaitSession = false;
         socket.eavesdropper = false;
 
         socket.join(socket.userId);
@@ -32,16 +33,16 @@ export const socketConnectEvent = async (socket) => {
 export const sendJoinRequestEvent = async (socket, request) => {
     const isReceiverOnline = await checkIfOnline(request.receiver);
     if (!isReceiverOnline)
-        return socket.emit("requestFailed", "User is not available for requests"); // If userId = roomId, finishRequest(cancelled), else if eavesdropper, call eavesdropFailed, else leaveEvent is called
+        return socket.emit("requestFailed", "User is not available for requests"); // call finishRequest(cancelled)
 
     socket.to(request.receiver).emit("requestToJoin", request);
-    socket.requestWaitSession = socket.userId;
+    socket.responseWaitSession = socket.userId;
 };
 
 export const eavesdropRequestEvent = async (socket, roomId) => {
     const isSenderOnline = await checkIfOnline(roomId);
     if (!isSenderOnline)
-        return socket.emit("requestFailed", "User is not available for requests");
+        return socket.emit("requestFailed", "Host is not available");
 
     socket.join(roomId);
     socket.eavesdropper = roomId;
@@ -50,10 +51,10 @@ export const eavesdropRequestEvent = async (socket, roomId) => {
 export const acceptEvent = async (socket, roomId) => {
     const isSenderOnline = await checkIfOnline(roomId);
     if (!isSenderOnline)
-        return socket.emit("requestFailed", "User is not available for requests");
+        return socket.emit("requestFailed", "Host is not available");
 
     socket.join(roomId);
-    socket.requestWaitSession = roomId;
+    socket.ackWaitSession = roomId;
 
     socket.to(roomId).emit("response", "accepted");
 };
@@ -61,20 +62,32 @@ export const acceptEvent = async (socket, roomId) => {
 export const rejectEvent = async (socket, roomId) => {
     const isSenderOnline = await checkIfOnline(roomId);
     if (!isSenderOnline)
-        return socket.emit("requestFailed", "User is not available for requests");
+        return socket.emit("requestFailed", "Host is not available");
 
-    socket.to(roomId).emit("response", "rejected"); // Emits leave event
-    socket.chatSession = false;
-    socket.requestWaitSession = false;
+    socket.to(roomId).emit("response", "rejected"); // sender calls finishRequest(rejected)
 };
 
+// Sender checks validity of request and sends ack (true or false)
 export const joinAckEvent = async (socket, roomId, ack) => {
     const isReceiverOnline = await checkIfOnline(roomId);
     if (!isReceiverOnline)
-        return socket.emit("requestFailed", "User is not available for requests");
+        return socket.emit("requestFailed", "User is not available for requests"); // call finishRequest(cancelled)
 
-    socket.to(roomId).emit("ack", ack); // Set socket.chatSession & unset socket.requestWaitSession if not eavesdropper
-    socket.requestWaitSession = false;
+    /**
+     * For receivers:
+     * 
+     *  If ack = true:
+     *   Set socket.chatSession & unset socket.ackWaitSession if not eavesdropper
+     * 
+     *  If ack = false:
+     *   Leave room
+     */
+    socket.to(roomId).emit("ack", ack);
+
+    if (!ack)
+        return resetSocketStats(socket);
+
+    socket.responseWaitSession = false;
     socket.chatSession = roomId;
 };
 
@@ -82,11 +95,22 @@ export const sendMessageEvent = (socket, roomId, encryptedMessage) => {
     socket.to(roomId).emit("message", encryptedMessage);
 };
 
-// Event emitted only if roomId != userId
+export const sessionEndEvent = (socket, roomId) => {
+    socket.to(roomId).emit("sessionEnd");
+    resetSocketStats(socket);
+}
+
+// Event emitted only if roomId != userId and requestFailed is called (or response is rejected for eavesdropper)
 export const leaveEvent = async (socket, roomId) => {
     socket.leave(roomId);
+    resetSocketStats(socket);
+};
+
+// Called when roomId == userId
+export const resetSocketStats = socket => {
     socket.chatSession = false;
-    socket.requestWaitSession = false;
+    socket.responseWaitSession = false;
+    socket.ackWaitSession = false;
     socket.eavesdropper = false;
 };
 
@@ -102,12 +126,14 @@ export const socketDisconnectEvent = async (socket) => {
         await OnlineUsers.deleteOne({ username: socket.userId });
         await redisClient.zRem("onlineUsers", socket.userId);
 
-        if (socket.requestWaitSession) {
-            socket.to(socket.requestWaitSession).emit("requestFailed", "User disconnected");
+        if (socket.responseWaitSession) {
+            socket.to(socket.userId).emit("requestFailed", "Host disconnected");
+            socket.to(socket.responseWaitSession).emit("requestFailed", "Host disconnected");
+            await finishRequest(socket.userId, "cancelled");
+        }
 
-            if (socket.userId === socket.requestWaitSession) {
-                await finishRequest(socket.userId, "cancelled");
-            }
+        if (socket.ackWaitSession) {
+            socket.to(socket.ackWaitSession).emit("requestFailed", "Receiver disconnected");
         }
 
         if (socket.eavesdropper) {

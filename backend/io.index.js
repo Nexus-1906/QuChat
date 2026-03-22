@@ -3,7 +3,7 @@ import {
     socketConnectEvent, socketDisconnectEvent,
     sendJoinRequestEvent, eavesdropRequestEvent,
     acceptEvent, rejectEvent, joinAckEvent,
-    sendMessageEvent, leaveEvent
+    sendMessageEvent, leaveEvent, sessionEndEvent, resetSocketStats
 } from "./lib/socketEventLib.js";
 
 export default socketInit = (io) => {
@@ -27,6 +27,8 @@ export default socketInit = (io) => {
             sendMessageEvent(socket, roomId, encryptedMessage));
 
         socket.on("leave", async roomId => await leaveEvent(socket, roomId));
+        socket.on("resetSocketStats", () => resetSocketStats(socket));
+        socket.on("sessionEnd", roomId => sessionEndEvent(socket, roomId));
         socket.on("disconnect", async () => await socketDisconnectEvent(socket));
     });
 };

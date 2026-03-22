@@ -5,7 +5,8 @@ import checkIfOnline from "../lib/checkIfOnline.js";
 import finishRequest from "../lib/finishRequest.js";
 
 export const persistRequestController = async (req, res) => {
-    const { receiverId, createdOn, timeLimitInMs } = req.body;
+    const { receiverId, timeLimitInMs, typeOfEncryption, chatSessionTimeInMin } = req.body;
+    const createdOn = Date.now();
     const senderId = req.userId;
 
     // Verify if receiver is available for requests
@@ -30,15 +31,17 @@ export const persistRequestController = async (req, res) => {
         }
     }
 
-    const newRequestForED = {
+    const newRequestPublic = {
         sender: senderId,
         receiver: receiverId,
         createdOn,
-        timeLimitInMs
+        timeLimitInMs,
+        typeOfEncryption,
+        chatSessionTimeInMin
     };
 
     const newRequest = {
-        ...newRequestForED,
+        ...newRequestPublic,
         eavesdropper: false,
         eavesdropperId: null,
         status: "pending"
@@ -61,11 +64,11 @@ export const persistRequestController = async (req, res) => {
     }
 
     // Emit request for eavesdropper
-    io.emit("requestForED", newRequestForED);
+    io.emit("requestForED", newRequestPublic);
 
     return res.status(200).json({
         msg: "Request persisted successfully!",
-        newRequestForED
+        newRequestPublic
     });
 };
 
@@ -81,7 +84,9 @@ export const getMyActiveRequestsController = async (req, res) => {
                 sender: request.sender,
                 receiver: request.receiver,
                 createdOn: request.createdOn,
-                timeLimitInMs: request.timeLimitInMs
+                timeLimitInMs: request.timeLimitInMs,
+                typeOfEncryption: request.typeOfEncryption,
+                chatSessionTimeInMin: request.chatSessionTimeInMin
             };
         });
     }
@@ -117,7 +122,9 @@ export const eavesdroppableRequestsController = async (_, res) => {
                     sender: request.sender,
                     receiver: request.receiver,
                     createdOn: request.createdOn,
-                    timeLimitInMs: request.timeLimitInMs
+                    timeLimitInMs: request.timeLimitInMs,
+                    typeOfEncryption: request.typeOfEncryption,
+                    chatSessionTimeInMin: request.chatSessionTimeInMin
                 };
             })
             .filter(request => request.receiver !== req.userId);

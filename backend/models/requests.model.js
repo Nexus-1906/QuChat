@@ -6,6 +6,8 @@ const requestSchema = new Schema({
     receiver: String,
     createdOn: Number,
     timeLimitInMs: Number,
+    typeOfEncryption: String,
+    chatSessionTimeInMin: Number,
     eavesdropper: Boolean,
     eavesdropperId: String,
     status: String

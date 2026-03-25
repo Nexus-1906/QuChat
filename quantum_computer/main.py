@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit_ibm_runtime.fake_provider import FakeMarrakesh
 from qiskit_aer import AerSimulator
@@ -6,7 +7,7 @@ from qiskit.transpiler import generate_preset_pass_manager
 from qiskit import QuantumCircuit
 from dotenv import load_dotenv
 import os
-from typing import Literal
+from typing import Literal, Annotated
 
 load_dotenv()
 
@@ -16,6 +17,30 @@ q_service = QiskitRuntimeService(
     token=os.getenv("API_KEY"),
     instance="quchat-key"
 )
+
+security = HTTPBearer()
+
+@app.middleware("http")
+async def authorize_call(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    call_next
+):
+    if request.url.path == "/rng":
+        return await call_next(request)
+    
+    if credentials.scheme != "Bearer":
+        return { "error": "Invalid auth token" }
+    
+    import jwt
+    try:
+        payload = jwt.decode(credentials.credentials, os.getenv("ACCESS_TOKEN_SECRET"), algorithms=["HS256"])
+    except:
+        return { "error": "Invalid auth token" }
+        
+    request.state.user = payload.userId
+    
+    return await call_next(request)
 
 @app.get("/rng/{typeOfMachine}")
 async def random_num_generator(
@@ -54,3 +79,4 @@ async def random_num_generator(
     counts = result[0].data.meas.get_counts()
     
     return list(counts.keys())
+

@@ -14,7 +14,7 @@ q_service = QiskitRuntimeService(
     instance="quchat-key"
 )
 
-@app.get("/rng/{bit_length}/{no_of_shots}")
+@app.get("/rng")
 async def random_num_generator(bit_length: str = "32", no_of_shots: str = "1") -> list[str]:
     bit_length = int(bit_length)
     no_of_shots = int(no_of_shots)

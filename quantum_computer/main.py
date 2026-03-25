@@ -15,7 +15,10 @@ q_service = QiskitRuntimeService(
 )
 
 @app.get("/rng/{bit_length}/{no_of_shots}")
-async def random_num_generator(bit_length, no_of_shots):
+async def random_num_generator(bit_length: str = "32", no_of_shots: str = "1") -> list[str]:
+    bit_length = int(bit_length)
+    no_of_shots = int(no_of_shots)
+
     if (bit_length < 1 or bit_length > 32 or no_of_shots < 1):
         return
     

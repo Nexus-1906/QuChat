@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
+from qiskit_ibm_runtime.fake_provider import FakeMarrakesh
 from qiskit.transpiler import generate_preset_pass_manager
 from qiskit import QuantumCircuit
 from dotenv import load_dotenv
 import os
+from typing import Literal
 
 load_dotenv()
 
@@ -14,15 +16,24 @@ q_service = QiskitRuntimeService(
     instance="quchat-key"
 )
 
-@app.get("/rng")
-async def random_num_generator(bit_length: str = "32", no_of_shots: str = "1") -> list[str]:
+@app.get("/rng/{typeOfMachine}")
+async def random_num_generator(
+    typeOfMachine: Literal["sim", "hw"],
+    bit_length: str = "32",
+    no_of_shots: str = "1"
+) -> list[str]:
+    
     bit_length = int(bit_length)
     no_of_shots = int(no_of_shots)
 
     if (bit_length < 1 or bit_length > 32 or no_of_shots < 1):
         return
     
-    q_backend = q_service.least_busy(min_num_qubits=32)
+    if (typeOfMachine == "sim"):
+        q_backend = FakeMarrakesh()
+    else:
+        q_backend = q_service.least_busy(min_num_qubits=32)
+        
     pm = generate_preset_pass_manager(backend=q_backend, optimization_level=1)
     sampler = Sampler(q_backend)
     

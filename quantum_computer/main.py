@@ -242,3 +242,11 @@ async def generateAndRunBB84Circuit(
     counts = result[0].data.meas.get_counts()
     
     return list(counts.keys())[0]
+
+@app.delete("/deleteMetadata/{roomId}")
+async def deleteMetadata(
+    roomId: str
+):
+    circuit_metadata = database["circuit_metadata"]
+    circuit_metadata.delete_one({ 'roomId': roomId })
+    return JSONResponse(status_code=204)

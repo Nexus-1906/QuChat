@@ -47,7 +47,7 @@ async def authorize_call(
     request: Request,
     call_next
 ):
-    if request.url.path.split("/")[1] != "distributeRawKey":
+    if request.url.path.split("/")[1] not in ["distributeRawKey", "deleteMetadata"]:
         return await call_next(request)
     
     auth_header = request.headers.get("Authorization")

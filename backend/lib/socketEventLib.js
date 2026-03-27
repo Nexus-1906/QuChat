@@ -172,7 +172,11 @@ export const socketDisconnectEvent = async (socket) => {
             socket.to(socket.ackWaitSession).emit("keyGenFailed", "Key Generation failed due to disturbed session");
 
             if (socket.userId == socket.ackWaitSession) {
-                fetch(`http://127.0.0.1/deleteMetadata/${socket.ackWaitSession}`);
+                fetch(`http://localhost:8598/deleteMetadata/${socket.ackWaitSession}`, {
+                    headers: {
+                        "Authorization": `Bearer ${socket.handshake.auth.token}`
+                    }
+                });
             }
         }
 

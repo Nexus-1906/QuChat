@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Literal
+import uvicorn
 
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 
@@ -264,3 +265,6 @@ async def deleteMetadata(
     circuit_metadata = database["circuit_metadata"]
     circuit_metadata.delete_one({ 'roomId': roomId })
     return JSONResponse(status_code=204)
+
+if __name__ == "__main__":
+    uvicorn.run(app=app, host="localhost", port=8598)

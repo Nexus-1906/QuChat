@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Literal
 
@@ -17,6 +18,19 @@ from dotenv import load_dotenv
 import pymongo
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:8596", # server
+    "http://localhost:8595", # frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 

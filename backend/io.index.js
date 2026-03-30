@@ -8,7 +8,7 @@ import {
     updateSocketDataWhenAccepted
 } from "./lib/socketEventLib.js";
 
-export default socketInit = (io) => {
+const socketInit = (io) => {
     io.use(ioAuth);
 
     io.on("connection", async socket => {
@@ -48,3 +48,5 @@ export default socketInit = (io) => {
         socket.on("disconnect", async () => await socketDisconnectEvent(socket));
     });
 };
+
+export default socketInit;

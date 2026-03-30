@@ -4,7 +4,11 @@ import WindowLoading from "./WindowLoading";
 import logo from "../assets/QuChat.png";
 
 export default function LoginUI() {
-	const { login, username, setUsername, password, setPassword, setIsLogin, windowLoading } = useContext(OnboardContext);
+	const { 
+        login, username, setUsername,
+        password, setPassword,
+        setIsLogin, windowLoading 
+    } = useContext(OnboardContext);
 
 	return (
 		<div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">

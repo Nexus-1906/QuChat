@@ -4,7 +4,12 @@ import WindowLoading from "./WindowLoading";
 import logo from "../assets/QuChat.png";
 
 export default function SignupUI() {
-	const { signup, username, setUsername, password, setPassword, checkPasswordLength, windowLoading, setIsLogin, showPasswordConstraints, showLengthConstraint, showSpCharConstraint, showAlpNumConstraint } = useContext(OnboardContext);
+	const { 
+        signup, username, setUsername,
+        password, setPassword, checkPasswordLength,
+        windowLoading, setIsLogin, showPasswordConstraints,
+        showLengthConstraint, showSpCharConstraint, showAlpNumConstraint
+    } = useContext(OnboardContext);
 
 	return (
 		<div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">

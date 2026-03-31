@@ -12,10 +12,10 @@ function OnboardPage() {
     const [windowLoading, setWindowLoading] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [showPasswordConstraints, setShowPasswordConstraints] = useState(false);
-    const [showLengthConstraint, setShowLengthConstraint] = useState(false);
-    const [showSpCharConstraint, setShowSpCharConstraint] = useState(false);
-    const [showAlpNumConstraint, setShowAlpNumConstraint] = useState(false);
+    const [showPasswordConstraints, setShowPasswordConstraints] = useState(true);
+    const [showLengthConstraint, setShowLengthConstraint] = useState(true);
+    const [showSpCharConstraint, setShowSpCharConstraint] = useState(true);
+    const [showAlpNumConstraint, setShowAlpNumConstraint] = useState(true);
     
     const navigate = useNavigate();
 
@@ -84,8 +84,6 @@ function OnboardPage() {
     }
 
     function checkPasswordLength() {
-        setShowPasswordConstraints(false);
-
         let lengthNotGood = false;
         let containsNum = false;
         let containsAlp = false;
@@ -104,12 +102,13 @@ function OnboardPage() {
                 containsSpCh = true;
         }
 
-        if (lengthNotGood || !(containsNum && containsAlp) || !containsSpCh)
+        if (lengthNotGood || !(containsNum && containsAlp) || !containsSpCh) {
             setShowPasswordConstraints(true);
 
-        setShowLengthConstraint(lengthNotGood);
-        setShowAlpNumConstraint(!(containsAlp && containsNum));
-        setShowSpCharConstraint(!containsSpCh);
+            setShowLengthConstraint(lengthNotGood);
+            setShowAlpNumConstraint(!(containsAlp && containsNum));
+            setShowSpCharConstraint(!containsSpCh);
+        }
     }
 
     return (

@@ -60,7 +60,8 @@ export default function SignupUI() {
 				)}
 
 				<div className="d-grid gap-2">
-					<button className="btn btn-success" onClick={signup} disabled={windowLoading}>
+					<button className="btn btn-success" onClick={signup}
+                        disabled={showPasswordConstraints || windowLoading}>
 						Sign up
 					</button>
 					<button className="btn btn-outline-secondary" onClick={() => setIsLogin(true)} disabled={windowLoading}>

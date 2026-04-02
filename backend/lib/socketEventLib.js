@@ -82,7 +82,6 @@ export const rejectEvent = async (socket, roomId) => {
 
 /**
  * To send positive ack,
- * check if request is still valid -> if not, send negative ack (leave room)
  * call finishRequest(accepted)
  * call distributeRawKey, after receiving result, send positive ack
  * 

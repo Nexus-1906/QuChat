@@ -39,7 +39,7 @@ db_client = pymongo.MongoClient(os.getenv("MONGODB_CONN"))
 database = db_client["test"]
 
 q_service = QiskitRuntimeService(
-    token=os.getenv("API_KEY"),
+    token=os.getenv("QC_API_KEY"),
     instance="quchat-key"
 )
 

@@ -4,6 +4,8 @@ import apiCaller from "../lib/api";
 import { toast } from "react-toastify";
 import { io } from "socket.io-client";
 import authCaller from "../lib/auth";
+import Header from "../components/HomeComponents/Header";
+import OnlineUsers from "../components/HomeComponents/OnlineUsers";
 
 function HomePage() {
     const [userId, setUserId] = useState(null);
@@ -11,13 +13,16 @@ function HomePage() {
     const [eavesdroppableRequests, setEavesdroppableRequests] = useState([]);
     const [requestsToMe, setRequestsToMe] = useState([]);
 
+    const [searchTermForUsers, setSearchTermForUsers] = useState("");
+
+    const [showNewRequest, setShowNewRequest] = useState(null);
     const [showRequestsToMe, setShowRequestsToMe] = useState(false);
     const [showEavesdroppableRequests, setShowEavesdroppableRequests] = useState(false);
 
     const navigate = useNavigate();
     const socketRef = useRef(null);
 
-    // Verify privelege and set userId
+    // Verify privilege and set userId
     useEffect(() => {
         apiCaller.get("/verify")
         .then((response) => {
@@ -161,9 +166,13 @@ function HomePage() {
         <>
             <Header userId={userId} navigate={navigate}/>
 
-            <OnlineUsers onlineUsers={onlineUsers} />
+            <OnlineUsers onlineUsers={onlineUsers} 
+                searchTerm={searchTermForUsers} setSearchTerm={setSearchTermForUsers}
+                setShowNewRequest={setShowNewRequest}
+            />
 
             <ChatWindow eavesdroppableRequests={eavesdroppableRequests} requestsToMe={requestsToMe}
+                showNewRequest={showNewRequest} setShowNewRequest={setShowNewRequest}
                 showRequestsToMe={showRequestsToMe} setShowRequestsToMe={setShowRequestsToMe}
                 showEavesdroppableRequests={showEavesdroppableRequests}
                 setShowEavesdroppableRequests={setShowEavesdroppableRequests}

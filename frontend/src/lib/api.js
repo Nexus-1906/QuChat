@@ -17,11 +17,17 @@ apiCaller.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest.retry) {
             originalRequest.retry = true;
 
-            const authResponse = await authCaller.post("/refresh");
-            localStorage.setItem("access-token", `Bearer ${authResponse.data.accessToken}`);
-            originalRequest.headers.Authorization = localStorage.getItem("access-token");
+            try {
+                const authResponse = await authCaller.post("/refresh");
+                localStorage.setItem("access-token", `Bearer ${authResponse.data.accessToken}`);
+                originalRequest.headers.Authorization = localStorage.getItem("access-token");
+                
+                return axios(originalRequest);
+            }
+            catch {
+                return Promise.reject(error);
+            }
             
-            return axios(originalRequest);
         }
         return Promise.reject(error);
     }

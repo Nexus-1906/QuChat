@@ -78,22 +78,16 @@ function OnboardPage() {
             lengthNotGood = true;
         }
 
-        for (const char of password) {
-            if (char.match(/[0-9]/g))
-                containsNum = true;
-            else if (char.match(/[a-zA-Z]/g))
-                containsAlp = true;
-            else if (char.match(/[^a-zA-Z0-9]/g))
-                containsSpCh = true;
-        }
+        containsNum = password.match(/[0-9]/g);
+        containsAlp = password.match(/[a-zA-Z]/g);
+        containsSpCh = password.match(/[^a-zA-Z0-9]/g);
 
-        if (lengthNotGood || !(containsNum && containsAlp) || !containsSpCh) {
-            setShowPasswordConstraints(true);
+        const criteria = lengthNotGood || !(containsNum && containsAlp) || !containsSpCh;
+        setShowPasswordConstraints(criteria);
 
-            setShowLengthConstraint(lengthNotGood);
-            setShowAlpNumConstraint(!(containsAlp && containsNum));
-            setShowSpCharConstraint(!containsSpCh);
-        }
+        setShowLengthConstraint(lengthNotGood);
+        setShowAlpNumConstraint(!(containsAlp && containsNum));
+        setShowSpCharConstraint(!containsSpCh);
     }
 
     return (

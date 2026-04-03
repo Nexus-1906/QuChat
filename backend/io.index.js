@@ -5,7 +5,7 @@ import {
     acceptEvent, rejectEvent, joinAckEvent,
     sendMessageEvent, leaveEvent, sessionEndEvent, resetSocketStats,
     updateSocketDataWhenQBERAccepted,
-    updateSocketDataWhenAccepted
+    updateSocketDataWhenAccepted, updateSocketDataWhenAcceptedQC
 } from "./lib/socketEventLib.js";
 
 const socketInit = (io) => {
@@ -21,8 +21,9 @@ const socketInit = (io) => {
             await eavesdropRequestEvent(socket, roomId));
 
         socket.on("accept", async roomId => await acceptEvent(socket, roomId));
-
+        
         socket.on("updateOnResponseAccept", roomId => updateSocketDataWhenAccepted(socket, roomId));
+        socket.on("updateOnResponseAcceptQC", roomId => updateSocketDataWhenAcceptedQC(socket, roomId));
 
         socket.on("reject", async roomId => await rejectEvent(socket, roomId));
         socket.on("joinAck", async (roomId, ack) =>

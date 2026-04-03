@@ -66,8 +66,14 @@ export const acceptEvent = async (socket, roomId) => {
     socket.to(roomId).emit("response", "accepted"); // sender calls finishRequest(accepted)
 };
 
-// Called when response is accepted
+// Called when response is accepted (typeOfEncryption == none)
 export const updateSocketDataWhenAccepted = (socket, roomId) => {
+    socket.responseWaitSession = false;
+    socket.chatSession = roomId;
+};
+
+// Called when response is accepted (typeOfEncryption == bb84)
+export const updateSocketDataWhenAcceptedQC = (socket, roomId) => {
     socket.responseWaitSession = false;
     socket.keyGenSession = roomId;
 };

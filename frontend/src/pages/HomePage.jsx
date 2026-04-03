@@ -32,6 +32,11 @@ function HomePage() {
     const [typeOfEncryption, setTypeOfEncryption] = useState("bb84");
     const [isSimulator, setIsSimulator] = useState(true);
 
+    // Native to chatSession
+    const [chatSessionTimer, setChatSessionTimer] = useState(-1);
+    const [chatEncryption, setChatEncryption] = useState("");
+    const [chatRoomId, setChatRoomId] = useState(null);
+
     const navigate = useNavigate();
     const socketRef = useRef(null);
 
@@ -190,6 +195,12 @@ function HomePage() {
         setShowRequestsToMe(false);
     }
 
+    function initChatSession(roomId, typeOfEncryption, timer) {
+        setChatRoomId(roomId);
+        setChatEncryption(typeOfEncryption);
+        setChatSessionTimer(timer);
+    }
+
     return (
         <>
             <Header userId={userId} navigate={navigate}/>
@@ -213,7 +224,10 @@ function HomePage() {
                 chatSessionTimeInMin, setChatSessionTimeInMin,
                 typeOfEncryption, setTypeOfEncryption,
                 isSimulator, setIsSimulator,
-                resetChatWindow
+                chatRoomId, setChatRoomId,
+                chatSessionTimer, setChatSessionTimer,
+                chatEncryption, setChatEncryption,
+                resetChatWindow, initChatSession
             }}>
                 <ChatWindow />
             </HomeContext.Provider>

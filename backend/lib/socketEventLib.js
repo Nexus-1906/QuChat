@@ -66,8 +66,14 @@ export const acceptEvent = async (socket, roomId) => {
     socket.to(roomId).emit("response", "accepted"); // sender calls finishRequest(accepted)
 };
 
-// Called when response is accepted
+// Called when response is accepted (typeOfEncryption == none)
 export const updateSocketDataWhenAccepted = (socket, roomId) => {
+    socket.responseWaitSession = false;
+    socket.chatSession = roomId;
+};
+
+// Called when response is accepted (typeOfEncryption == bb84)
+export const updateSocketDataWhenAcceptedQC = (socket, roomId) => {
     socket.responseWaitSession = false;
     socket.keyGenSession = roomId;
 };
@@ -82,7 +88,6 @@ export const rejectEvent = async (socket, roomId) => {
 
 /**
  * To send positive ack,
- * check if request is still valid -> if not, send negative ack (leave room)
  * call finishRequest(accepted)
  * call distributeRawKey, after receiving result, send positive ack
  * 
@@ -139,6 +144,7 @@ export const sendMessageEvent = (socket, roomId, message) => {
 
 export const sessionEndEvent = (socket, roomId) => {
     socket.to(roomId).emit("sessionEnd");
+    socket.leave(roomId);
     resetSocketStats(socket);
 }
 

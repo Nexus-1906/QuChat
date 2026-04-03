@@ -3,8 +3,8 @@ import { redisClient } from "../index.js";
 import io from "../io.index.js";
 import { OnlineUsers } from "../models/user.model.js";
 
-export const verifyAccessTokenController = (_, res) => {
-    return res.status(200).json({ msg: "Access token verified successfully!" });
+export const verifyAccessTokenController = (req, res) => {
+    return res.status(200).json({ userId: req.userId });
 };
 
 export const getOnlineUsersController = async (req, res) => {

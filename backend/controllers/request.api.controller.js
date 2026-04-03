@@ -11,7 +11,6 @@ export const persistRequestController = async (req, res) => {
         isSimulator 
     } = req.body;
 
-    const createdOn = Date.now();
     const senderId = req.userId;
 
     // Verify if receiver is available for requests
@@ -39,8 +38,8 @@ export const persistRequestController = async (req, res) => {
     const newRequestPublic = {
         sender: senderId,
         receiver: receiverId,
-        createdOn,
-        timeLimitInMs,
+        createdOn: Date.now(),
+        timeLimitInMs: timeLimitInMs + 1000, // Consider latency
         typeOfEncryption,
         chatSessionTimeInMin,
         isSimulator
